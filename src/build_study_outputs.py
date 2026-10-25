@@ -35,7 +35,11 @@ def main():
     names={'parzen_box':'Coordinate bands','parzen_contrasts':'Contrast bands','batch_t_8':'Eight-batch $t$'}
     cases={"clear_null":"Clear null","clear_change":"Clear change","near_null":"Near-tie null",
            "near_change":"Near-tie change","exact_tie_null":"Exact-tie null","gap_0.10_change":"Gap 0.10 change"}
-    lines=[r'\begin{longtable}{@{}lllrllll@{}}',r'\toprule',texrow(['Scenario',r'$n$',r'$\phi$','Method','Input','Detect.','$L_H$','Width']),r'\midrule',r'\endhead']
+    header=texrow(['Scenario',r'$n$',r'$\phi$','Method','Input','Detect.','$L_H$','Width'])
+    lines=[r'\begin{longtable}{@{}lllrllll@{}}',
+           r'\caption{Complete follow-up: input coverage and detection in percent; mean turnover lower bound and degree-interval width. Each cell has 200 paired datasets.}\label{tab:followup}'+chr(92)*2,
+           r'\toprule',header,r'\midrule',r'\endfirsthead',
+           r'\toprule',header,r'\midrule',r'\endhead']
     for cell in sorted(b.cell.unique()):
         for j,method in enumerate(names):
             r=b[(b.cell==cell)&(b.method==method)].iloc[0]
@@ -89,7 +93,7 @@ def main():
     ax.set_xlabel('Change in degree');ax.grid(axis='x',alpha=.15)
     ax.legend(loc='lower center',bbox_to_anchor=(.5,-.3),ncol=2,frameon=False)
     fig.tight_layout();fig.savefig(FIG/'empirical_intervals.pdf');fig.savefig(FIG/'empirical_intervals.png',dpi=160);plt.close(fig)
-    print('Generated four tables and two study figures from complete saved results.')
+    print('Generated three tables and two study figures from complete saved results.')
 
 
 if __name__=='__main__':main()

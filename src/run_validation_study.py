@@ -65,9 +65,10 @@ def summarize(frame):
 
 def main(args):
     out=ROOT/"results"/args.output;out.mkdir(parents=True,exist_ok=True)
-    cells=design()
+    indexed=list(enumerate(design()))
     if args.cells is not None:
-        cells=[cells[j] for j in args.cells]
+        indexed=[indexed[j] for j in args.cells]
+    cells=[cell for _,cell in indexed]
     method_names=["parzen_gaussian","parzen_t_sensitivity","bonferroni_parzen","bartlett_pilot"]
     meta={"seed":args.seed,"reps":args.reps,"draws":args.draws,"alpha":.05,
           "cells":cells,"methods":method_names,"bandwidth":"ceil(2*n^(1/3)); Parzen kernel",
@@ -78,7 +79,7 @@ def main(args):
           "scope":"Fixed p=8; stationary Gaussian AR(1); independent periods in simulation only."}
     (out/"design.json").write_text(json.dumps(meta,indent=2))
     start=time.time();rows=[]
-    for cell_index,cell in enumerate(cells):
+    for position,(cell_index,cell) in enumerate(indexed):
         n,p,phi=cell["n"],cell["p"],cell["phi"]
         edges=complete_edges(p);idx=np.triu_indices(p,1)
         covs=[make_cov(p,h,cell["kind"],cell["increment"]) for h in [0,cell["hub"]]]
@@ -117,7 +118,7 @@ def main(args):
         frame=pd.DataFrame(rows)
         frame.to_csv(out/"replicates.csv",index=False)
         summarize(frame).to_csv(out/"summary.csv",index=False)
-        print(f"cell {cell_index+1}/{len(cells)} {cell['case']} n={n} phi={phi}: {args.reps} reps; {time.time()-start:.1f}s",flush=True)
+        print(f"cell {position+1}/{len(cells)} (id {cell_index}) {cell['case']} n={n} phi={phi}: {args.reps} reps; {time.time()-start:.1f}s",flush=True)
     meta["elapsed_seconds"]=time.time()-start
     (out/"metadata.json").write_text(json.dumps(meta,indent=2))
 
