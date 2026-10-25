@@ -44,7 +44,7 @@ def main():
         for j,method in enumerate(names):
             r=b[(b.cell==cell)&(b.method==method)].iloc[0]
             lines.append(texrow([cases[r['case']] if j==0 else '',int(r.n) if j==0 else '',f'{r.phi:.2f}' if j==0 else '',
-                ['Box','Contrast','Batch $t$'][j],f'{100*r.box_covered:.1f}',f'{100*r.detected:.1f}',f'{r.turnover_lower:.2f}',f'{r.degree_width:.2f}']))
+                ['Box','Contrast','Batch $t$'][j],f'{100*r.box_covered:.1f}',f'{100*r.detected:.1f}',f'{r.turnover_lower:.2f}',f'{r.degree_width:.2f}'])+('*' if j<2 else ''))
         if cell!=b.cell.max():lines.append(r'\addlinespace[3pt]')
     lines+=[r'\bottomrule',r'\end{longtable}']
     (MAN/'targeted_table.tex').write_text('\n'.join(lines))
