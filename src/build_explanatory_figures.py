@@ -76,7 +76,7 @@ def main(root):
     fig.tight_layout(pad=.25);save(fig,root,'envelope_families')
 
     fig,ax=plt.subplots(figsize=(7.4,2.85))
-    labels=['Close within tolerance','More change than tolerance','Unresolved']
+    labels=['Every pair within tolerance','More change than tolerance','Unresolved']
     for y,lo,hi,c in [(2,0,1,BLUE),(1,3,5,ORANGE),(0,0,5,GREY)]:
         ax.plot([lo,hi],[y,y],color=c,lw=5,solid_capstyle='round')
         ax.scatter([lo,hi],[y,y],color=c,s=38,zorder=3)
