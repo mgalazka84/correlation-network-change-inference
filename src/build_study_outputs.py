@@ -49,7 +49,9 @@ def main():
     lines+=[r'\bottomrule',r'\end{longtable}']
     (MAN/'targeted_table.tex').write_text('\n'.join(lines))
     chosen=[1,6,11,13,8,14]
-    labels=['Clear\nn=250, phi=.6','Clear\nn=1000, phi=.6','Clear\nn=1000, phi=.85','Clear\nn=4000, phi=.6','Near tie\nn=1000, phi=.6','Gap .10\nn=1000, phi=.6']
+    labels=['Clear\n'+r'$n=250,\ \phi=.6$', 'Clear\n'+r'$n=1000,\ \phi=.6$',
+            'Clear\n'+r'$n=1000,\ \phi=.85$', 'Clear\n'+r'$n=4000,\ \phi=.6$',
+            'Near tie\n'+r'$n=1000,\ \phi=.6$', 'Gap .10\n'+r'$n=1000,\ \phi=.6$']
     fig,axes=plt.subplots(2,1,figsize=(8.1,6.1),sharex=True)
     colors=['#306d8c','#c56e29','#588146']
     for j,(method,label,color) in enumerate(zip(names,names.values(),colors)):
