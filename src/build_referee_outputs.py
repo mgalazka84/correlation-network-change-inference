@@ -47,6 +47,12 @@ def main(root):
                      f'{100*v.covered:.0f}',f'{100*v.detected:.0f}',f'[{v.mean_lower:g},{v.mean_upper:g}]',
                      f'{100*v.hierarchy_detected:.0f}',f'{100*v.batch_covered:.0f}'])
     table(m/'revision_table.tex',r'Model & $q$ & Scenario & Input & Turnover & Range & Hierarchy & Batch input',rows,'lrllrrrr')
+    finite=pd.read_csv(r/'finite_study/summary.csv');finite_rows=[]
+    for _,v in finite.iterrows():
+        scenario='Binary' if v['kind']=='binary' else 'Ties' if v['kind']=='tie' else 'Change' if v['change'] else 'Null'
+        finite_rows.append([int(v.n),f'{v.phi:g}',scenario,f'{v.halfwidth:.3f}',int(v.spacing),int(v.retained)]+
+                           [f'{100*v[k]:.1f}' for k in ['covered','detected','stability_k1','exact_recovered']])
+    table(m/'finite_table.tex',r'$n$ & $\phi$ & Scenario & $h$ & $a$ & $N$ & Input & Change & Pair & Exact',finite_rows,'rrlrrrrrrr')
     # Preserve nominal guarantees in labels rather than conflating empirical rates with proofs.
     change=s[s.change].reset_index(drop=True);fig,axes=plt.subplots(1,2,figsize=(7.4,2.8))
     labels=['IID, q=.70','IID, q=.94','SV, q=.94']
