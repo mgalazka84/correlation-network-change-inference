@@ -210,3 +210,35 @@ def compare_intervals(p, edges, lower1, upper1, lower2, upper2):
         "raw_degree_change_lower": degrees(p, edges, env2[0]) - degrees(p, edges, env1[1]),
         "raw_degree_change_upper": degrees(p, edges, env2[1]) - degrees(p, edges, env1[0]),
     }
+
+
+def full_envelope_rank(p, edges, forced, possible, subset):
+    """Rank of the full-edge matroid whose bases are envelope trees."""
+    return envelope_rank(p, edges, forced, set(subset) & possible)
+
+
+def turnover_upper_bound(p, edges, env1, env2, certificate=False):
+    """Exact maximum replacements, by intersection with the second dual.
+
+    The certificate verifies the upper optimum with rank calculations only.
+    Ground elements outside possible1 are loops and can be removed.
+    """
+    f1, p1 = env1
+    f2, p2 = env2
+    ground_all = set(range(len(edges)))
+    rank = p - 1
+    def independent1(x):
+        return x <= p1 and forest(p, edges, f1 | x)
+    def independent_dual2(x):
+        return full_envelope_rank(p, edges, f2, p2, ground_all - x) == rank
+    chosen, partition = maximum_common_independent(
+        p1, independent1, independent_dual2, return_partition=True)
+    other = p1 - partition
+    dual_rank = len(other) + full_envelope_rank(
+        p, edges, f2, p2, ground_all - other) - rank
+    rank_sum = full_envelope_rank(p, edges, f1, p1, partition) + dual_rank
+    assert rank_sum == len(chosen)
+    if certificate:
+        return dict(turnover_upper=len(chosen), common_independent=sorted(chosen),
+                    partition_A=sorted(partition), ground=sorted(p1), rank_sum=rank_sum)
+    return len(chosen)
