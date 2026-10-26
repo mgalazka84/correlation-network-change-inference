@@ -49,7 +49,7 @@ def main():
     lines+=[r'\bottomrule',r'\end{longtable}']
     (MAN/'targeted_table.tex').write_text('\n'.join(lines))
     chosen=[1,6,11,13,8,14]
-    labels=['Clear\nn=250','Clear\nn=1000','Clear, phi=.85\nn=1000','Clear\nn=4000','Near tie\nn=1000','Gap .10\nn=1000']
+    labels=['Clear\nn=250, phi=.6','Clear\nn=1000, phi=.6','Clear\nn=1000, phi=.85','Clear\nn=4000, phi=.6','Near tie\nn=1000, phi=.6','Gap .10\nn=1000, phi=.6']
     fig,axes=plt.subplots(2,1,figsize=(8.1,6.1),sharex=True)
     colors=['#306d8c','#c56e29','#588146']
     for j,(method,label,color) in enumerate(zip(names,names.values(),colors)):
@@ -64,8 +64,8 @@ def main():
     axes[1].set_xticks(range(len(chosen)),labels,fontsize=8)
     for ax in axes:ax.grid(axis='y',alpha=.18)
     handles,labels_=axes[0].get_legend_handles_labels()
-    fig.legend(handles,labels_,loc='lower center',ncol=3,bbox_to_anchor=(.5,-.02),frameon=False)
-    fig.tight_layout();fig.savefig(FIG/'followup_calibration.pdf');fig.savefig(FIG/'followup_calibration.png',dpi=160);plt.close(fig)
+    fig.legend(handles,labels_,loc='lower center',ncol=3,bbox_to_anchor=(.5,.002),frameon=False)
+    fig.tight_layout(rect=(0,.06,1,1));fig.savefig(FIG/'followup_calibration.pdf');fig.savefig(FIG/'followup_calibration.png',dpi=160);plt.close(fig)
     eroot=ROOT/'results/empirical'
     e=pd.read_csv(eroot/'summary.csv')
     contrast=json.loads((eroot/'contrast_exploration.json').read_text())
