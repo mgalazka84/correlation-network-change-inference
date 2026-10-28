@@ -42,6 +42,8 @@ def components(p, edges, ids):
     dsu = DSU(p)
     for e in ids:
         dsu.union(*edges[e])
+        if dsu.components == 1:
+            return 1
     return dsu.components
 
 
@@ -121,6 +123,13 @@ def maximum_common_independent(ground, independent1, independent2, return_partit
     """
     ground = set(ground)
     chosen = set()
+    # Any common independent set is a valid starting point for augmentation.
+    # A greedy warm start avoids repeated scans in dense, weakly constrained
+    # envelopes. The unchanged rank certificate still verifies optimality.
+    for x in sorted(ground):
+        candidate = chosen | {x}
+        if independent1(candidate) and independent2(candidate):
+            chosen = candidate
     while True:
         outside = sorted(ground - chosen)
         sources = [x for x in outside if independent1(chosen | {x})]

@@ -114,6 +114,7 @@ def all_order_plan(x,seed=1):
 
 def all_order_envelope(plan,rejected):
     p=plan['p'];edges=plan['edges'];m=len(edges)
+    if not np.any(rejected):return set(),set(range(m))
     better=np.zeros((m,m),bool)
     rel=plan['pairs'][rejected];better[rel[:,0],rel[:,1]]=True
     F=set();P=set()

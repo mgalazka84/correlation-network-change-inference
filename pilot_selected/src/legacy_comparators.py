@@ -5,6 +5,7 @@ immutable companion commit df81f96ef2d8ca67fae6bc34df19289f95346ce4.
 They are reference implementations, not new methods of this study.
 """
 import numpy as np
+from functools import lru_cache
 from scipy.stats import binom
 from scipy.special import logsumexp
 from paired_order import holm,all_order_envelope
@@ -13,8 +14,42 @@ from network_bounds import complete_edges,turnover_lower_bound,turnover_upper_bo
 
 
 def local_pairs(edges):
-    return np.asarray([(a,b) for a,e in enumerate(edges) for b,f in enumerate(edges)
-                       if a!=b and bool(set(e)&set(f))],dtype=int)
+    return _local_layout(tuple(map(tuple,edges)))[0]
+
+
+@lru_cache(maxsize=None)
+def _local_layout(edges):
+    vertices=sorted(set(v for e in edges for v in e))
+    incidence={v:{i for i,e in enumerate(edges) if v in e} for v in vertices}
+    pairs=np.asarray([(i,j) for i,(a,b) in enumerate(edges)
+                      for j in sorted((incidence[a]|incidence[b])-{i})],dtype=int)
+    groups=[]
+    for v in vertices:
+        ids=sorted(incidence[v]);lookup={e:i for i,e in enumerate(ids)}
+        selected=np.array([k for k,(f,e) in enumerate(pairs)
+                           if f in lookup and e in lookup],dtype=int)
+        groups.append((np.asarray(ids),selected,
+                       np.array([lookup[f] for f in pairs[selected,0]]),
+                       np.array([lookup[e] for e in pairs[selected,1]])))
+    return pairs,groups
+
+
+def local_counts(H,edges,evidence):
+    """Exact integer counts, restricted to incident-edge blocks.
+
+Every distinct adjacent-edge pair has exactly one common vertex, so these
+blocks partition the local hypotheses and avoid computing unused contrasts.
+"""
+    pairs,groups=_local_layout(tuple(map(tuple,edges)))
+    counts=np.zeros((len(pairs),4 if evidence else 2),int)
+    for ids,selected,f,e in groups:
+        h=H[:,ids];pos=(h==1).astype(float);neg=(h==-1).astype(float)
+        cross=np.rint(pos.T@neg).astype(int)
+        counts[selected,0]=cross[f,e];counts[selected,1]=cross[e,f]
+        if evidence:
+            zero=(h==0).astype(float);half=np.rint(pos.T@zero+zero.T@neg).astype(int)
+            counts[selected,2]=half[f,e];counts[selected,3]=half[e,f]
+    return counts
 
 
 def closure_pairs(pairs,rejected,m):
@@ -35,15 +70,11 @@ def legacy_plan(x,seed=1,evidence=False,repeats=8):
             # Independent coordinate tie signs, equivalent to lexicographic jitter.
             sign=np.where(sign==0,np.where(rng.random(sign.shape)<.5,-1,1),sign)
         H=sign[:,ends[:,0]]*sign[:,ends[:,1]]
-        pos=(H==1).astype(float);neg=(H==-1).astype(float)
-        cross=np.rint(pos.T@neg).astype(int)
-        plus=cross[fs,es];minus=cross[es,fs]
+        counts=local_counts(H,edges,evidence)
+        plus=counts[:,0];minus=counts[:,1]
         if not evidence:
             D=plus+minus;pv=binom.sf(plus-1,D,.5);pv[D==0]=1.
         else:
-            zero=(H==0).astype(float)
-            half=np.rint(pos.T@zero+zero.T@neg).astype(int)
-            counts=np.stack([plus,minus,half[fs,es],half[es,fs]],axis=1)
             logs.append(counts@np.log1p(np.array([1.,-1.,.5,-.5])[:,None]*fractions))
     if evidence:
         logE=logsumexp(np.concatenate(logs,axis=1),axis=1)-np.log(7*repeats)
