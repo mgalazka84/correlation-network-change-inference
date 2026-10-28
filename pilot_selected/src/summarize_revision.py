@@ -68,6 +68,14 @@ def main():
     expanded=read(R/'expanded_replications.csv');tuning=read(R/'tuning_replications.csv')
     boost=read(R/'original-bootstrap_replications.csv')
     old=pd.concat([read(ROOT/'results/simulation_replications.csv'),read(ROOT/'results/legacy_replications.csv'),boost],ignore_index=True)
+    # The inherited-method archive omits target columns; recover the same
+    # population targets from the original design, not from observed outputs.
+    targets=old[['cell','truth_lower','truth_upper']].dropna().drop_duplicates()
+    assert not targets.cell.duplicated().any(), 'Conflicting original targets'
+    targets=targets.set_index('cell')
+    for col in ['truth_lower','truth_upper']:
+        old[col]=old[col].fillna(old.cell.map(targets[col]))
+        assert old[col].notna().all(), 'Missing original target'
     e64=read(ROOT/'results/e64_replications.csv');e64['truth_lower']=e64.p-2;e64['truth_upper']=e64.p-2
     checks=dict(expanded=integrity(expanded,'expanded',38,8),
                 tuning=integrity(tuning,'tuning',6,20),original_bootstrap=integrity(boost,'original bootstrap',38,1))
