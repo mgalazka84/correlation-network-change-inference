@@ -24,7 +24,7 @@ def overview():
         for a,b in edges:ax.plot(xy[[a,b],0],xy[[a,b],1],color=col,lw=2)
         ax.scatter(xy[:,0],xy[:,1],s=180,facecolor='white',edgecolor=col,zorder=4)
         for j,(x,y) in enumerate(xy):ax.text(x,y,str(j+1),ha='center',va='center',zorder=5,fontsize=8)
-    ax.text(3,.62,'A changed edge in the drawing is not yet a population conclusion.',ha='center',fontsize=9)
+    ax.text(3,.62,'Different trees can reflect sampling error.',ha='center',fontsize=9)
     ax.text(8,2.9,'Independent selection and validation',ha='center',fontsize=10)
     for y,label in [(2.35,'Pilot tree selects comparisons'),(1.5,'Validation certifies edge orders'),(.65,'Turnover interval [L, U]')]:
         ax.add_patch(FancyBboxPatch((6.2,y-.25),3.6,.5,boxstyle='round,pad=.06',fc='#f1f4f6',ec='#688392',lw=.8))
@@ -55,7 +55,9 @@ def simulations():
         for r,p in enumerate([8,16]):
             for c,model in enumerate(['Gaussian','Student-t5','Binary-Gaussian']):
                 ax=axs[r,c];sub=df[(df.p==p)&(df.model==model)&df.change]
-                settings=sorted(set(zip(sub.n,sub.rho)));ys=np.arange(len(settings))
+                settings=sorted(set(zip(sub.n,sub.rho)))
+                standard=[(400,.35),(400,.65),(1000,.35),(1000,.65)]
+                ys=np.array([standard.index(x) for x in settings])
                 for j,(method,col) in enumerate(zip(METHODS,COLORS)):
                     sel=sub[sub.method==method].set_index(['n','rho']).loc[settings]
                     y=ys+(j-2.5)*.105
@@ -64,8 +66,9 @@ def simulations():
                         ax.errorbar(v,y,xerr=np.maximum(0,np.vstack([v-lo,hi-v])),fmt='o',ms=3,lw=.7,color=col,label=method)
                     else:ax.plot(sel.width/(p-1),y,'o',ms=3.6,color=col,label=method)
                 ax.set_yticks(ys,[f'{int(n)}, {rho:.2f}' for n,rho in settings],fontsize=9)
-                ax.invert_yaxis();ax.set_xlim(-.03,1.04);ax.grid(axis='x',color='#e4e8eb',lw=.6)
-                ax.set_title(f'{model}, p = {p}',fontsize=9)
+                ax.set_ylim(3.65,-.65);ax.set_xlim(-.03,1.04);ax.grid(axis='x',color='#e4e8eb',lw=.6)
+                title_model=r'Student $t_5$' if model=='Student-t5' else model
+                ax.set_title(f'{title_model}, p = {p}',fontsize=9)
                 if r==1:ax.set_xlabel('Detection probability' if metric=='detect' else 'Mean relative width',fontsize=8)
         handles,labels=axs[0,0].get_legend_handles_labels();fig.legend(handles,labels,ncol=3,loc='lower center',frameon=False,fontsize=8)
         fig.tight_layout(rect=(0,.09,1,1),w_pad=2,h_pad=2);save(fig,filename)
